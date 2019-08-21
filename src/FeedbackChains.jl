@@ -6,10 +6,15 @@ import Base: getindex, show
 using MacroTools: @forward
 
 using ..Splitters
-using ..Mergers
+using ..AbstractMergers
 using ..AbstractFeedbackNets
 export FeedbackChain
 
+"""
+    FeedbackChain{T<:Tuple}
+
+Tuple-like structure similar to a Flux.Chain with support for `Splitter`s and `Merger`s.
+"""
 struct FeedbackChain{T<:Tuple} <: AbstractFeedbackNet
     layers::T
     FeedbackChain(xs...) = new{typeof(xs)}(xs)
@@ -31,7 +36,7 @@ function (c::FeedbackChain)(h, x)
     for layer ∈ c.layers
         if layer isa Splitter
             newh[splitname(layer)] = x
-        elseif layer isa Merger
+        elseif layer isa AbstractMerger
             x = layer(x, h)
         else
             x = layer(x)
